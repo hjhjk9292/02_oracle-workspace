@@ -22,7 +22,7 @@ ORDER BY SAL DESC;
 ----5. EMP테이블에서 급여가 같을 경우 커미션을 내림차순 정렬 조회 
 SELECT *
 FROM EMP
-ORDER BY SAL DESC, COMM DESC;
+ORDER BY COMM DESC;
 
 --6. EMP테이블에서 사원번호, 사원명, 직급, 입사일 조회 (단, 입사일을 오름차순 정렬 처리) 
 SELECT EMPNO, ENAME, JOB, HIREDATE

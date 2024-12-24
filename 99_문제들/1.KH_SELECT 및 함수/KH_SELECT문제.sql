@@ -60,7 +60,7 @@ WHERE NOT PHONE LIKE '010%';
 --고용일이 90/01/01 ~ 00/12/01이고, 급여가 270만 이상인 사원의 전체를 조회 
 SELECT *
 FROM EMPLOYEE
-WHERE EMAIL LIKE '____$_%' ESCAPE '$' AND DEPT_CODE = 'D9' OR DEPT_CODE = 'D6' AND HIRE_DATE BETWEEN '90/01/01' AND '00/12/01' AND SALARY >= 2700000;
+WHERE EMAIL LIKE '____$_%' ESCAPE '$' AND DEPT_CODE IN('D9','D6') AND HIRE_DATE BETWEEN '90/01/01' AND '00/12/01' AND SALARY >= 2700000;
 
 ----15. EMPLOYEE테이블에서 사원 명과 직원의 주민번호를 이용하여 생년, 생월, 생일 조회 
 --SELECT EMP_NAME, EMP_NO
@@ -75,9 +75,9 @@ WHERE EMAIL LIKE '____$_%' ESCAPE '$' AND DEPT_CODE = 'D9' OR DEPT_CODE = 'D6' A
 SELECT EMP_NAME, HIRE_DATE, 
 
 ----18. EMPLOYEE테이블에서 사번이 홀수인 직원들의 정보 모두 조회 
---SELECT *
---FROM EMPLOYEE
---WHERE EMP_ID % 2 = 1;
+SELECT *
+FROM EMPLOYEE
+WHERE EMP_ID LIKE '__1','__3','__5','__7','__9';
 
 --19. EMPLOYEE테이블에서 근무 년수가 20년 이상인 직원 정보 조회 
 
