@@ -406,8 +406,8 @@ WHERE DEPT_CODE NOT IN ('D6','D8','D5');
     4. IS NULL / LIKE '특정패턴' / IN
     5. BETWEEN A AND B
     6. NOT(논리부정연산자)
-    7. AND(논리연산자)   -- AND가 OR보다 높은 순위
-    8. OR(논리연산자) 
+   ★7. AND(논리연산자)   -- AND가 OR보다 높은 순위
+   ★8. OR(논리연산자) 
 */
 
 -- 직급 코드가 J7이거나 J2인 사원들 중 급여가 200만원 이상인 사원들의 모든 컬럼 조회

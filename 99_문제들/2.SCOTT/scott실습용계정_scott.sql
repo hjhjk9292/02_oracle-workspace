@@ -34,27 +34,39 @@ SELECT EMPNO, ENAME
 FROM EMP
 ORDER BY EMPNO DESC;
 
-----8. EMP테이블에서 사번, 입사일, 사원명, 급여 조회 
-----(부서번호가 빠른 순으로, 같은 부서번호일 때는 최근 입사일 순으로 처리) 
+---8. EMP테이블에서 사번, 입사일, 사원명, 급여 조회 
+---(부서번호가 빠른 순으로, 같은 부서번호일 때는 최근 입사일 순으로 처리) 
 
 SELECT EMPNO, HIREDATE, ENAME, SAL
-FROM EMP;
+FROM EMP
+ORDER BY DEPTNO ASC, HIREDATE DESC;
+
 
 --9. 오늘 날짜에 대한 정보 조회 
+SELECT SYSDATE FROM DUAL;
+
+----10. EMP테이블에서 사번, 사원명, 급여 조회  
+--(단, 급여는 100단위까지의 값만 출력 처리하고 급여 기준 내림차순 정렬) -- 1750이면 50 안나오게 반올림
+SELECT EMPNO, ENAME, SUBSTR(SAL, 1, 3)
+FROM EMP
+ORDER BY SAL DESC;
+
+----11. EMP테이블에서 사원번호가 홀수인 사원들을 조회 
+SELECT *
+FROM EMP
+WHERE SUBSTR(EMPNO, 4 ,1) IN ('1', '3', '5', '7', '9');
+
+----12. EMP테이블에서 사원명, 입사일 조회 (단, 입사일은 년도와 월을 분리 추출해서 출력)
+SELECT ENAME,
+EXTRACT(YEAR FROM HIREDATE) AS "입사년도",
+EXTRACT(MONTH FROM HIREDATE) AS "입사월"
+FROM EMP;
 
 
---10. EMP테이블에서 사번, 사원명, 급여 조회  
---(단, 급여는 100단위까지의 값만 출력 처리하고 급여 기준 내림차순 정렬) 
-
-
---11. EMP테이블에서 사원번호가 홀수인 사원들을 조회 
-
-
---12. EMP테이블에서 사원명, 입사일 조회 (단, 입사일은 년도와 월을 분리 추출해서 출력)
-
-
---13. EMP테이블에서 9월에 입사한 직원의 정보 조회 
-
+----13. EMP테이블에서 9월에 입사한 직원의 정보 조회 
+SELECT ENAME
+FROM EMP
+WHERE EXTRACT(MONTH FROM HIREDATE) AS "입사월";
 
 --14. EMP테이블에서 81년도에 입사한 직원 조회 
 
@@ -66,13 +78,16 @@ FROM EMP;
 
 --16-1. LIKE 사용 
 
+
 --16-2. SUBSTR() 함수 사용 
 
 
---17. EMP테이블에서 사번, 사원명, 입사일, 입사일로부터 40년 되는 날짜 조회
-
+----17. EMP테이블에서 사번, 사원명, 입사일, 입사일로부터 40년 되는 날짜 조회
+SELECT ENAME, HIREDATE, FLOOR(SYSDATE - HIREDATE) || '일'
+FROM EMP;
 
 --18. EMP테이블에서 입사일로부터 38년 이상 근무한 직원의 정보 조회 
 
 
---19. 오늘 날짜에서 년도만 추출 
+----19. 오늘 날짜에서 년도만 추출 
+SELECT SYSDATE FROM DUAL;
