@@ -106,7 +106,7 @@ ORDER BY 2 ;
 --주민번호 앞자리와 뒷자리의 합 조회 
 SELECT EMP_ID, EMP_NAME, EMP_NO
 FROM EMPLOYEE
-WHERE EMP_ID = '201', SUBSTR(EMP_NO,6,-1);
+--WHERE EMP_ID = '201', SUBSTR(EMP_NO,6,-1);
 
 
 ---24. EMPLOYEE테이블에서 부서코드가 D5인 직원의 보너스 포함 연봉 합 조회 <NVL>
