@@ -45,14 +45,14 @@ ORDER BY DEPTNO ASC, HIREDATE DESC;
 --9. 오늘 날짜에 대한 정보 조회 
 SELECT SYSDATE FROM DUAL;
 
-----10. EMP테이블에서 사번, 사원명, 급여 조회  
+--10. EMP테이블에서 사번, 사원명, 급여 조회  --
 --(단, 급여는 100단위까지의 값만 출력 처리하고 급여 기준 내림차순 정렬) -- 1750이면 50 안나오게 반올림
 -- ROUND(SAL, -2)는 숫자를 가장 가까운 100 단위로 반올림하는 역할
 SELECT EMPNO, ENAME, ROUND(SAL, -2) 
 FROM EMP
 ORDER BY SAL DESC;
 
-----11. EMP테이블에서 사원번호가 홀수인 사원들을 조회 (MOD 함수는 나머지 연산을 수행하는 함수)
+--11. EMP테이블에서 사원번호가 홀수인 사원들을 조회 (MOD 함수는 나머지 연산을 수행하는 함수)--
 SELECT *
 FROM EMP
 WHERE MOD(EMPNO, 2) = 1;
@@ -74,28 +74,32 @@ SELECT *
 FROM EMP
 WHERE EXTRACT(YEAR FROM HIREDATE) = 1981;
 
---15. EMP테이블에서 이름이 'E'로 끝나는 직원 조회 
+--15. EMP테이블에서 이름이 'E'로 끝나는 직원 조회 -- 
 SELECT *
 FROM EMP
 WHERE ENAME LIKE '%E';
 
 --16. EMP테이블에서 이름의 세 번째 글자가 'R'인 직원의 정보 조회 
---16-1. LIKE 사용 
+--16-1. LIKE 사용 --
 SELECT *
 FROM EMP
 WHERE ENAME LIKE '__R%';
 
---16-2. SUBSTR() 함수 사용 
+--16-2. SUBSTR() 함수 사용 --
 SELECT *
 FROM EMP
 WHERE SUBSTR(ENAME, 3, 1) = 'R';
 
-----17. EMP테이블에서 사번, 사원명, 입사일, 입사일로부터 40년 되는 날짜 조회
-SELECT ENAME, HIREDATE, FLOOR(SYSDATE - HIREDATE) || '일'
+--17. EMP테이블에서 사번, 사원명, 입사일, 입사일로부터 40년 되는 날짜 조회--
+SELECT EMPNO, ENAME, HIREDATE, 
+       ADD_MONTHS(HIREDATE, 40 * 12) AS "40년 되는 날짜"
 FROM EMP;
 
---18. EMP테이블에서 입사일로부터 38년 이상 근무한 직원의 정보 조회 
+--18. EMP테이블에서 입사일로부터 38년 이상 근무한 직원의 정보 조회 --
+SELECT *
+FROM EMP
+WHERE HIREDATE <= ADD_MONTHS(SYSDATE, -38 * 12);
 
-
-----19. 오늘 날짜에서 년도만 추출 
-SELECT SYSDATE FROM DUAL;
+--19. 오늘 날짜에서 년도만 추출 --
+SELECT TO_CHAR(SYSDATE, 'YYYY')
+FROM DUAL;
