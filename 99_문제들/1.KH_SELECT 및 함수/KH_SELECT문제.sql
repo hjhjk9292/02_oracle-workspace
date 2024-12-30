@@ -155,7 +155,8 @@ SELECT SUM(SALARY + SALARY * NVL(BONUS, 0)) * 12 --AS "부서코드가 D5인 직원의 보
 FROM EMPLOYEE
 WHERE DEPT_CODE = 'D5';
 
-----25. EMPLOYEE테이블에서 직원들의 입사일로부터 년도만 가지고 각 년도별 입사 인원수 조회 전체 직원 수, 2001년, 2002년, 2003년, 2004년 <어렵 >2001년은 몇명이다~ 표처럼 한번에 --
+----25. EMPLOYEE테이블에서 직원들의 입사일로부터 년도만 가지고 각 년도별 입사 인원수 조회 전체 직원 수, 
+-- 2001년, 2002년, 2003년, 2004년 <어렵 >2001년은 몇명이다~ 표처럼 한번에 --
 SELECT EXTRACT(YEAR FROM HIRE_DATE) AS "입사년도",
        COUNT(*) AS "입사인원수"
 FROM EMPLOYEE
