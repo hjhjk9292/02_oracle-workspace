@@ -1,4 +1,4 @@
------ [Basic SELECT] 2번 빼고 완
+----- [Basic SELECT] 완료
 
 --1. 춘 기술대학교의 학과 이름과 계열을 표시하시오.
 -- 단, 출력 헤더는 "학과 명", "계열" 으로 표시하도록 한다.
@@ -13,7 +13,7 @@ FROM TB_DEPARTMENT;
 -- 힌트 : 연결 연산자 이용해서 || 는 2개 이상 가능
 --CONCAT(STRING, STRING) : 2개만 받을 수 있음
 
-SELECT DEPARTMENT_NAME AS "학과별", CAPACITY AS "정원"
+SELECT DEPARTMENT_NAME || '의 정원은' AS "학과별", CAPACITY || '명 입니다.' AS "정원"
 FROM TB_DEPARTMENT;
 --WHERE DEPARTMENT_NAME ||'의 정원은' CAPACITY '명 입니다.' ;
 
@@ -357,13 +357,27 @@ ORDER BY CLASS_NAME;
 
 
 
---10. ‘음악학과’ 학생들의 평점을 구하려고 한다. 음악학과 학생들의 "학번", "학생 이름", "전체 평점"을 출력하는 SQL 문장을 작성하시오.
+--10. ‘음악학과’ 학생들의 평점을 구하려고 한다. 
+--음악학과 학생들의 "학번", "학생 이름", "전체 평점"을 출력하는 SQL 문장을 작성하시오.
 --(단, 평점은 소수점 1자리까지만 반올림하여 표시한다.)
+SELECT * FROM TB_STUDENT;
+SELECT * FROM TB_DEPARTMENT;
+SELECT * FROM TB_GRADE;
 
+SELECT STUDENT_NO, STUDENT_NAME, POINT --ROUND(AVG(POINT),1)
+FROM TB_STUDENT
+JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
+JOIN TB_GRADE USING(STUDENT_NO)
+WHERE DEPARTMENT_NAME = '음악학과';
 
 
 --11. 학번이 A313047인 학생이 학교에 나오고 있지 않다. 지도 교수에게 내용을 전달하기 위한 학과 이름, 학생 이름과 지도 교수 이름이 필요하다. 
 --이때 사용할 SQL 문을 작성하시오.  단, 출력헤더는 ?학과이름?, ?학생이름?, ?지도교수이름?으로 출력되도록 한다. 
+SELECT * FROM TB_STUDENT;
+SELECT * FROM TB_DEPARTMENT;
+SELECT * FROM TB_PROFESSOR;
+
+SELECT DEPARTMENT_NAME AS "학과이름", STUDENT_NAME AS "학생이름", PROFESSOR_NAME "지도교수이름";
 
 
 --12. 2007 년도에 '인간관계론' 과목을 수강한 학생을 찾아 학생이름과 수강학기를 표시하는 SQL 문장을 작성하시오. 
@@ -391,3 +405,60 @@ ORDER BY CLASS_NAME;
 
 --19. 춘 기술대학교의 "환경조경학과"가 속한 같은 계열 학과들의 학과 별 전공과목 평점을 파악하기 위한 적절한 SQL 문을 찾아내시오.
 --단, 출력헤더는 "계열 학과명", "전공평점"으로 표시되도록 하고, 평점은 소수점 한 자리까지만 반올림하여 표시되도록 한다.
+
+
+
+--[DDL] 
+--1. 계열 정보를 저장할 카테고리 테이블을 만들려고 한다. 다음과 같은 테이블을 작성하시오.
+-- 테이블 이름 
+-- TB_CATEGORY 
+--컬럼 
+--NAME, VARCHAR2(10)  
+--USE_YN, CHAR(1), 기본값은 Y 가 들어가도록
+
+CREATE TABLE TB_CATEGORY(
+    NAME VARCHAR2(10),
+    USE_YN CHAR(1) DEFAULT 'Y' CHECK(USE_YN IN ('N', 'Y'))
+);
+
+SELECT * FROM TB_CATEGORY;
+
+--2. 과목 구분을 저장할 테이블을 만들려고 한다. 다음과 같은 테이블을 작성하시오.
+--테이블이름 
+--TB_CLASS_TYPE 
+--컬럼 
+--NO, VARCHAR2(5), PRIMARY KEY 
+--NAME , VARCHAR2(10)  
+
+CREATE TABLE TB_CLASS_TYPE(
+    NO VARCHAR2(5) PRIMARY KEY,
+    NAME VARCHAR2(10)
+);
+
+SELECT * FROM TB_CLASS_TYPE;
+
+--3. TB_CATAGORY 테이블의 NAME 컬럼에 PRIMARY KEY를 생성하시오. 
+--(KEY 이름을 생성하지 않아도 무방함. 만일 KEY 이를 지정하고자 한다면 이름은 본인이 알아서 적당한 이름을 사용한다.)
+
+DROP TABLE TB_CATEGORY;
+
+CREATE TABLE TB_CATEGORY(
+    NAME VARCHAR2(10) CONSTRAINT CATEGORY_PK PRIMARY KEY,
+    USE_YN CHAR(1) DEFAULT 'Y' CHECK(USE_YN IN ('N', 'Y'))
+);
+
+SELECT * FROM TB_CATEGORY;
+
+--4. TB_CLASS_TYPE 테이블의 NAME 컬럼에 NULL 값이 들어가지 않도록 속성을 변경하시오.
+
+DROP TABLE TB_CLASS_TYPE;
+
+CREATE TABLE TB_CLASS_TYPE(
+    NO VARCHAR2(5) PRIMARY KEY,
+    NAME VARCHAR2(10) CONSTRAINT CLASSTYPE_NN_NAME NOT NULL 
+);
+
+SELECT * FROM TB_CLASS_TYPE;
+
+-- 5. 두 테이블에서 컬럼 명이 NO인 것은 기존 타입을 유지하면서 크기는 10 으로, 
+--컬럼명이 NAME 인 것은 마찬가지로 기존 타입을 유지하면서 크기 20 으로 변경하시오.
