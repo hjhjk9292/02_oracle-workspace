@@ -95,7 +95,7 @@ WHERE ABSENCE_YN = 'N'
 
 
 
------[Additional SELECT - 함수] 
+-----[Additional SELECT - 함수] 5번, 7-9번, 12번 부터~~
 
 --1. 영어영문학과(학과코드 002) 학생들의 학번과 이름, 입학 년도를 입학 년도가 빠른 순으로 표시하는 SQL 문장을 작성하시오.
 --( 단, 헤더는 "학번", "이름", "입학년도" 가 표시되도록 한다.)
@@ -258,7 +258,7 @@ ORDER BY DEPARTMENT_NO ASC;
 
 
 
------[Additional SELECT - Option] page 13 ~ 21
+-----[Additional SELECT - Option] page 13 ~ 21 / 9번, 10번 ~~ (12번은 더 쉽게 푸는 법 없을까)
 
 --1. 학생이름과 주소지를 표시하시오. 단, 출력 헤더는 "학생 이름", "주소지"로 하고, 정렬은 이름으로 오름차순 표시하도록 한다. 
 SELECT * FROM TB_STUDENT;
@@ -373,17 +373,50 @@ WHERE DEPARTMENT_NAME = '음악학과';
 
 --11. 학번이 A313047인 학생이 학교에 나오고 있지 않다. 지도 교수에게 내용을 전달하기 위한 학과 이름, 학생 이름과 지도 교수 이름이 필요하다. 
 --이때 사용할 SQL 문을 작성하시오.  단, 출력헤더는 ?학과이름?, ?학생이름?, ?지도교수이름?으로 출력되도록 한다. 
+--SELECT DEPARTMENT_NAME AS "학과이름", STUDENT_NAME AS "학생이름", PROFESSOR_NAME "지도교수이름";
 SELECT * FROM TB_STUDENT;
 SELECT * FROM TB_DEPARTMENT;
 SELECT * FROM TB_PROFESSOR;
 
-SELECT DEPARTMENT_NAME AS "학과이름", STUDENT_NAME AS "학생이름", PROFESSOR_NAME "지도교수이름";
-
 
 --12. 2007 년도에 '인간관계론' 과목을 수강한 학생을 찾아 학생이름과 수강학기를 표시하는 SQL 문장을 작성하시오. 
+SELECT * FROM TB_CLASS
+WHERE CLASS_NAME = '인간관계론';
+
+SELECT * FROM TB_GRADE
+WHERE TERM_NO LIKE '2007%' AND CLASS_NO = 'C2604100';
+
+SELECT STUDENT_NAME, TERM_NO
+FROM TB_STUDENT
+JOIN TB_GRADE USING(STUDENT_NO)
+WHERE TERM_NO LIKE '2007%' AND CLASS_NO = 'C2604100';
 
 
 --13. 예체능 계열 과목 중 과목 담당교수를 한 명도 배정받지 못한 과목을 찾아 그 과목 이름과 학과 이름을 출력하는 SQL 문장을 작성하시오.
+SELECT * FROM TB_DEPARTMENT
+WHERE CATEGORY = '예체능'; -- DEPARMENT_NO = 056 ~063
+
+SELECT * FROM TB_CLASS; -- DEPARTMENT_NO
+
+SELECT * FROM TB_PROFESSOR; -- PROFESSOR_NO, DEPARTMENT_NO
+
+SELECT * FROM TB_CLASS_PROFESSOR; -- PROFESSOR_NO
+
+SELECT CLASS_NAME, DEPARTMENT_NAME
+FROM TB_DEPARTMENT
+JOIN TB_CLASS USING (DEPARTMENT_NO)
+WHERE CATEGORY = '예체능';
+
+
+SELECT
+    CLASS_NAME,
+    DEPARTMENT_NAME
+FROM TB_CLASS C, TB_CLASS_PROFESSOR CP,TB_DEPARTMENT D
+WHERE 
+    C.CLASS_NO = CP.CLASS_NO
+    AND C.DEPARTMENT_NO = D.DEPARTMENT_NO
+    AND PROFESSOR_NO IS NULL
+    AND CATEGORY = '예체능';
 
 
 --14. 춘 기술대학교 서반아어학과 학생들의 지도교수를 게시하고자 한다. 
@@ -418,7 +451,7 @@ SELECT DEPARTMENT_NAME AS "학과이름", STUDENT_NAME AS "학생이름", PROFESSOR_NAME
 
 CREATE TABLE TB_CATEGORY(
     NAME VARCHAR2(10),
-    USE_YN CHAR(1) DEFAULT 'Y' CHECK(USE_YN IN ('N', 'Y'))
+    USE_YN CHAR(1) DEFAULT 'Y'
 );
 
 SELECT * FROM TB_CATEGORY;
@@ -430,35 +463,230 @@ SELECT * FROM TB_CATEGORY;
 --NO, VARCHAR2(5), PRIMARY KEY 
 --NAME , VARCHAR2(10)  
 
+DROP TABLE TB_CLASS_TYPE;
+SELECT * FROM TB_CLASS_TYPE;
+
 CREATE TABLE TB_CLASS_TYPE(
     NO VARCHAR2(5) PRIMARY KEY,
     NAME VARCHAR2(10)
 );
 
-SELECT * FROM TB_CLASS_TYPE;
+CREATE TABLE TB_CLASS_TYPE(
+    NO VARCHAR2(5),
+    NAME VARCHAR2(10),
+    PRIMARY KEY(NO)
+);
 
 --3. TB_CATAGORY 테이블의 NAME 컬럼에 PRIMARY KEY를 생성하시오. 
 --(KEY 이름을 생성하지 않아도 무방함. 만일 KEY 이를 지정하고자 한다면 이름은 본인이 알아서 적당한 이름을 사용한다.)
-
 DROP TABLE TB_CATEGORY;
-
-CREATE TABLE TB_CATEGORY(
-    NAME VARCHAR2(10) CONSTRAINT CATEGORY_PK PRIMARY KEY,
-    USE_YN CHAR(1) DEFAULT 'Y' CHECK(USE_YN IN ('N', 'Y'))
-);
-
 SELECT * FROM TB_CATEGORY;
 
+ALTER TABLE TB_CATEGORY ADD CONSTRAINT NAME_PK PRIMARY KEY(NAME);
+
 --4. TB_CLASS_TYPE 테이블의 NAME 컬럼에 NULL 값이 들어가지 않도록 속성을 변경하시오.
-
-DROP TABLE TB_CLASS_TYPE;
-
-CREATE TABLE TB_CLASS_TYPE(
-    NO VARCHAR2(5) PRIMARY KEY,
-    NAME VARCHAR2(10) CONSTRAINT CLASSTYPE_NN_NAME NOT NULL 
-);
-
-SELECT * FROM TB_CLASS_TYPE;
+ALTER TABLE TB_CLASS_TYPE MODIFY NAME NOT NULL;
 
 -- 5. 두 테이블에서 컬럼 명이 NO인 것은 기존 타입을 유지하면서 크기는 10 으로, 
 --컬럼명이 NAME 인 것은 마찬가지로 기존 타입을 유지하면서 크기 20 으로 변경하시오.
+ALTER TABLE TB_CATEGORY 
+    MODIFY NAME VARCHAR2(20);
+    
+ALTER TABLE TB_CLASS_TYPE
+    MODIFY NO VARCHAR2(10)
+    MODIFY NAME VARCHAR2(20);
+
+--6. 두 테이블의 NO 컬럼과 NAME 컬럼의 이름을 각 각 TB_ 를 제외한 테이블 이름이 앞에 
+--붙은 형태로 변경한다. (ex. CATEGORY_NAME) 
+
+ALTER TABLE TB_CATEGORY RENAME COLUMN NAME TO CATEGORY_NAME;
+
+ALTER TABLE TB_CLASS_TYPE RENAME COLUMN NO TO CLASS_TYPE_NO;
+ALTER TABLE TB_CLASS_TYPE RENAME COLUMN NAME TO CLASS_TYPE_NAME;
+
+
+--7. TB_CATAGORY 테이블과 TB_CLASS_TYPE 테이블의 PRIMARY KEY 이름을 다음과 같이 변경하시오. 
+--Primary Key 의 이름은 "PK_ + 컬럼이름"으로 지정하시오. (ex. PK_CATEGORY_NAME ) 
+ALTER TABLE TB_CATEGORY RENAME CONSTRAINT NAME_PK TO PK_CATEGORY_NAME;
+--ALTER TABLE TB_CLASS_TYPE RENAME CONSTRAINT SYS_C007215 TO PK_CLASS_TYPE_NO;
+
+SELECT * FROM TB_CLASS_TYPE;
+SELECT * FROM TB_CATEGORY;
+
+--8. 다음과 같은INSERT 문을 수행한다. 
+--INSERT INTO TB_CATEGORY VALUES ('공학','Y'); 
+--INSERT INTO TB_CATEGORY VALUES ('자연과학','Y'); 
+--INSERT INTO TB_CATEGORY VALUES ('의학','Y'); 
+--INSERT INTO TB_CATEGORY VALUES ('예체능','Y'); 
+--INSERT INTO TB_CATEGORY VALUES ('인문사회','Y'); 
+--COMMIT;  
+
+INSERT INTO TB_CATEGORY VALUES ('공학','Y'); 
+INSERT INTO TB_CATEGORY VALUES ('자연과학','Y'); 
+INSERT INTO TB_CATEGORY VALUES ('의학','Y'); 
+INSERT INTO TB_CATEGORY VALUES ('예체능','Y'); 
+INSERT INTO TB_CATEGORY VALUES ('인문사회','Y'); 
+COMMIT;
+
+SELECT * FROM TB_CATEGORY;
+
+----9.TB_DEPARTMENT 의 CATEGORY 컬럼이 TB_CATEGORY 테이블의 CATEGORY_NAME 컬럼을 부모값으로 참조하도록 FOREIGN KEY를 지정하시오. 
+-- 이 때 KEY 이름은 FK_테이블이름_컬럼이름으로 지정한다. (ex. FK_DEPARTMENT_CATEGORY ) 
+SELECT * FROM TB_DEPARTMENT;
+
+ALTER TABLE TB_DEPARTMENT ADD CONSTRAINT FK_DEPARTMENT_CATEGORY 
+FOREIGN KEY(CATEGORY) REFERENCES TB_CATEGORY(CATEGORY_NAME);
+
+SELECT * FROM TB_CATEGORY;
+SELECT * FROM TB_CLASS_TYPE;
+SELECT * FROM TB_DEPARTMENT;
+
+
+-----10. 춘 기술대학교 학생들의 정보만이 포함되어 있는 학생일반정보 VIEW를 만들고자 한다. 
+--아래 내용을 참고하여 적절한 SQL 문을 작성하시오.
+
+
+-----11. 춘 기술대학교는 1년에 두 번씩 학과별로 학생과 지도교수가 지도 면담을 진행한다. 
+--이를 위해 사용할 학생이름, 학과이름, 담당교수이름 으로 구성되어 있는 VIEW 를 만드시오. 
+--이때 지도 교수가 없는 학생이 있을 수 있음을 고려하시오 
+--(단, 이 VIEW 는 단순 SELECT 만을 할 경우 학과별로 정렬되어 화면에 보여지게 만드시오.) 
+
+
+-----12. 모든 학과의 학과별 학생 수를 확인할 수 있도록 적절한 VIEW 를 작성해 보자. 
+
+
+-----13. 위에서 생성한 학생일반정보 View를 통해서 학번이 A213046인 학생의 이름을 본인 
+--이름으로 변경하는 SQL 문을 작성하시오. 
+
+-----14. 13 번에서와 같이 VIEW를 통해서 데이터가 변경될 수 있는 상황을 막으려면 VIEW를 
+--어떻게 생성해야 하는지 작성하시오. 
+
+-----15. 춘 기술대학교는 매년 수강신청 기간만 되면 특정 인기 과목들에 수강 신청이 몰려 
+--문제가 되고 있다. 최근 3년을 기준으로 수강인원이 가장 맋았던 3 과목을 찾는 구문을 작성해보시오.
+
+
+
+--------------------------------------[DML]---------------------------------
+-- 1. 과목유형 테이블(TB_CLASS_TYPE)에 아래와 같은 데이터를 입력하시오.
+--번호, 유형이름 ------------ 
+--01, 전공필수 
+--02, 전공선택 
+--03, 교양필수 
+--04, 교양선택 
+--05. 논문지도  
+SELECT * FROM TB_CLASS_TYPE;
+
+INSERT INTO TB_CLASS_TYPE
+VALUES(01,'전공필수');
+
+INSERT INTO TB_CLASS_TYPE VALUES(02,'전공선택');
+INSERT INTO TB_CLASS_TYPE VALUES(03,'교양필수');
+INSERT INTO TB_CLASS_TYPE VALUES(04,'교양선택');
+INSERT INTO TB_CLASS_TYPE VALUES(05,'논문지도');
+
+-- 2. 춘 기술대학교 학생들의 정보가 포함되어 있는 학생일반정보 테이블을 만들고자 한다. 
+-- 아래 내용을 참고하여 적절한 SQL 문을 작성하시오. (서브쿼리를 이용하시오) 
+-- 테이블이름 
+--  TB_학생일반정보 
+--  컬럼 
+--  학번 
+--  학생이름 
+--  주소
+CREATE TABLE TB_학생일반정보
+AS SELECT STUDENT_NO AS "학번", STUDENT_NAME AS "학생이름", STUDENT_ADDRESS AS "주소"
+FROM TB_STUDENT;
+
+-- 3. 국어국문학과 학생들의 정보만이 포함되어 있는 학과정보 테이블을 만들고자 핚다. 
+--아래 내용을 참고하여 적절한 SQL 문을 작성하시오. (힌트 : 방법은 다양함, 소신껏 작성하시오) 
+--테이블이름 
+--  TB_국어국문학과 
+--컬럼 
+--   학번 
+--   학생이름 
+--   출생년도 <= 네자리 년도로 표기 
+--   교수이름 
+SELECT * FROM TB_STUDENT;
+
+CREATE TABLE TB_국어국문학과
+AS SELECT 
+    STUDENT_NO AS "학번", 
+    STUDENT_NAME AS "학생이름", 
+    EXTRACT(YEAR FROM TO_DATE(SUBSTR(STUDENT_SSN,1,6),'RR/MM/DD')) AS "출생년도", 
+    PROFESSOR_NAME AS "교수이름"
+   FROM TB_STUDENT, TB_PROFESSOR
+   WHERE COACH_PROFESSOR_NO = PROFESSOR_NO;
+
+--4. 현 학과들의 정원을 10% 증가시키게 되었다. 이에 사용할 SQL 문을 작성하시오. 
+--(단, 반올림을 사용하여 소수점 자릿수는 생기지 않도록 한다) 
+SELECT * FROM TB_DEPARTMENT;
+
+UPDATE TB_DEPARTMENT
+SET CAPACITY = ROUND(CAPACITY * 1.1); -- 국어국문학과 20, 영어영문학과 36, 28, 28
+
+ROLLBACK;
+
+--5. 학번 A413042 인 박건우 학생의 주소가 "서울시 종로구 숭인동 181-21 "로 변경되었다고 한다.
+-- 주소지를 정정하기 위해 사용할 SQL 문을 작성하시오. 
+SELECT * FROM TB_STUDENT;
+
+SELECT STUDENT_ADDRESS
+FROM TB_STUDENT
+WHERE STUDENT_NO = 'A413042' AND STUDENT_NAME = '박건우';
+
+UPDATE TB_STUDENT
+SET STUDENT_ADDRESS = '서울시 종로구 숭인동 182-21'; -- 경기도 파주시 적성면 장현2리 산65번지
+
+ROLLBACK;
+
+--6. 주민등록번호 보호법에 따라 학생정보 테이블에서 주민번호 뒷자리를 저장하지 않기로 결정하였다. 
+--이 내용을 반영한 적절한 SQL 문장을 작성하시오. (예. 830530-2124663 ==> 830530 )  
+SELECT * FROM TB_STUDENT;
+
+SELECT SUBSTR(STUDENT_SSN,1,6)
+FROM TB_STUDENT;
+
+UPDATE TB_STUDENT
+SET STUDENT_SSN = SUBSTR(STUDENT_SSN,1,6); -- 830530-2124663
+
+ROLLBACK;
+
+--7. 의학과 김명훈 학생은 2005년 1학기에 자신이 수강한 '피부생리학' 점수가 잘못되었다는 것을 발견하고는 정정을 요청하였다. 
+--담당 교수의 확인 받은 결과 해당 과목의 학점을 3.5로 변경키로 결정되었다. 적절한 SQL 문을 작성하시오. 
+
+SELECT *
+FROM TB_STUDENT
+WHERE STUDENT_NAME = '김명훈'; -- 동명이인 DEPARTMENT_NO = 024, 053 / STUDENT_NO = A331092, A331101
+
+SELECT * 
+FROM TB_DEPARTMENT
+WHERE DEPARTMENT_NAME = '의학과'; -- DEPARTMENT_NO 053
+
+SELECT *
+FROM TB_GRADE -- TERM_NO = 200501
+WHERE STUDENT_NO = 'A331101' AND TERM_NO = '200501' AND CLASS_NO = 'C3843900';
+
+--SELECT * FROM TB_CLASS
+--WHERE CLASS_NAME = '피부생리학'; -- DEPARTMENT_NO = 053 / CALSS_NO = C3843900
+
+UPDATE TB_GRADE
+SET POINT = 3.5
+WHERE STUDENT_NO = 'A331101' AND TERM_NO = '200501'; -- 1.5
+
+ROLLBACK; -- ㄴ 큰 일날뻔... WHERE 꼭 써주기..!! 더 쉽게 작성하는 코드 있을 거 같은데..
+
+
+--8. 성적 테이블(TB_GRADE) 에서 휴학생들의 성적항목을 제거하시오.
+SELECT * FROM TB_STUDENT
+WHERE ABSENCE_YN = 'Y';
+
+SELECT *
+FROM TB_GRADE
+JOIN TB_STUDENT USING(STUDENT_NO)
+WHERE ABSENCE_YN = 'Y';
+
+UPDATE TB_GRADE
+SET POINT = NULL
+WHERE TB_GRADE.STUDENT_NO IN (SELECT STUDENT_NO 
+                                FROM TB_STUDENT 
+                               WHERE ABSENCE_YN = 'Y');
+
