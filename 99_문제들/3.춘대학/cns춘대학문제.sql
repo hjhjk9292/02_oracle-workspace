@@ -15,7 +15,6 @@ FROM TB_DEPARTMENT;
 
 SELECT DEPARTMENT_NAME || '의 정원은' AS "학과별", CAPACITY || '명 입니다.' AS "정원"
 FROM TB_DEPARTMENT;
---WHERE DEPARTMENT_NAME ||'의 정원은' CAPACITY '명 입니다.' ;
 
 --SELECT DEPARTMENT_NAME AS "학과별", CAPACITY AS "정원"
 --FROM TB_DEPARTMENT;
@@ -102,11 +101,13 @@ WHERE ABSENCE_YN = 'N'
 SELECT * FROM TB_STUDENT;
 SELECT * FROM TB_CLASS;
 
-SELECT STUDENT_NO AS "학번", STUDENT_NAME AS "이름", ENTRANCE_DATE AS "입학년도"
+SELECT
+    STUDENT_NO AS "학번",
+    STUDENT_NAME AS "이름",
+    TO_CHAR(ENTRANCE_DATE,'RRRR-MM-DD') AS "입학년도"
 FROM TB_STUDENT
-JOIN TB_CLASS USING(DEPARTMENT_NO)
-WHERE DEPARTMENT_NO = '002' AND CLASS_NAME = '영어교육연구'
-ORDER BY ENTRANCE_DATE ASC;
+WHERE DEPARTMENT_NO = 002
+ORDER BY ENTRANCE_DATE;
 
 --2. 춘 기술대학교의 교수 중 이름이 세 글자가 아닌 교수가 한 명 있다고 한다. 그 교수의 이름과 주민번호를 화면에 출력하는 SQL 문장을 작성해 보자. 
 --(* 이때 올바르게 작성한 SQL 문장의 결과 값이 예상과 다르게 나올 수 있다. 원인이 무엇일지 생각해볼 것) 
@@ -117,6 +118,12 @@ SELECT PROFESSOR_NAME, PROFESSOR_SSN
 FROM TB_PROFESSOR
 WHERE LENGTH(PROFESSOR_NAME) != 3 ;
 
+SELECT
+    PROFESSOR_NAME,
+    PROFESSOR_SSN
+FROM TB_PROFESSOR
+WHERE PROFESSOR_NAME NOT LIKE '___';
+
 --3. 춘 기술대학교의 남자 교수들의 이름과 나이를 출력하는 SQL 문장을 작성하시오. 단 이때 나이가 적은 사람에서 많은 사람 순서로 화면에 출력되도록 만드시오. 
 --(단, 교수 중 2000 년 이후 출생자는 없으며 출력 헤더는 "교수이름", "나이"로 한다. 나이는 ‘만’으로 계산한다.)
 SELECT PROFESSOR_NAME AS 교수이름, 
@@ -125,23 +132,39 @@ FROM TB_PROFESSOR
 WHERE SUBSTR(PROFESSOR_SSN, 8,1)IN('1','3')
 ORDER BY 나이 ASC;
 
+SELECT 
+    PROFESSOR_NAME AS "교수이름", 
+    EXTRACT(YEAR FROM SYSDATE) - EXTRACT(YEAR FROM TO_DATE('19'||SUBSTR(PROFESSOR_SSN,1,6))) AS "나이"
+FROM TB_PROFESSOR
+ORDER BY 2;
+
 
 --4. 교수들의 이름 중 성을 제외한 이름만 출력하는 SQL 문장을 작성하시오. 
 --출력 헤더는 ?이름? 이 찍히도록 한다. (성이 2자인 경우는 교수는 없다고 가정하시오)
-SELECT SUBSTR(PROFESSOR_NAME, 2) AS 이름
+SELECT SUBSTR(PROFESSOR_NAME, 2,2) AS 이름
+FROM TB_PROFESSOR;
+
+SELECT 
+    SUBSTR(PROFESSOR_NAME,2,LENGTH(PROFESSOR_NAME)-1) AS "이름 "
 FROM TB_PROFESSOR;
 
 
 ---- 5. 춘 기술대학교의 재수생 입학자를 구하려고 한다. 어떻게 찾아낼 것인가?  
 -- 이때, 19살에 입학하면 재수를 하지 않은 것으로 간주한다.
+
+SELECT 
+    STUDENT_NO,
+    STUDENT_NAME
+FROM TB_STUDENT
+WHERE EXTRACT(YEAR FROM ENTRANCE_DATE) - EXTRACT(YEAR FROM TO_DATE(SUBSTR(STUDENT_SSN,1,6))) > 19;
+
 --SELECT STUDENT_NAME AS "학생 이름",
 --       STUDENT_NO AS "학번",
 --       FLOOR(MONTHS_BETWEEN(TO_DATE(SUBSTR(STUDENT_NO, 1, 4) || '-03-01', 'YYYY-MM-DD'), 
 --                            TO_DATE(SUBSTR(STUDENT_SSN, 1, 6), 'YYMMDD')) / 12) AS "입학 나이"
 --FROM TB_STUDENT
 --WHERE FLOOR(MONTHS_BETWEEN(TO_DATE(SUBSTR(STUDENT_NO, 1, 4) || '-03-01', 'YYYY-MM-DD'), 
---                            TO_DATE(SUBSTR(STUDENT_SSN, 1, 6), 'YYMMDD')) / 12) > 19;
-
+--                            TO_DATE(SUBSTR(STUDENT_SSN, 1, 6), 'YYMMDD')) / 12) > 19;  -- 오답
 
 ---6. 2020년 크리스마스는 무슨 요일인가? 
 SELECT TO_CHAR(TO_DATE('2020-12-25', 'YYYY-MM--DD'), 'DAY') AS "요일"
@@ -150,59 +173,53 @@ FROM DUAL;
 
 ---- 7. TO_DATE('99/10/11','YY/MM/DD'), TO_DATE('49/10/11','YY/MM/DD')  은 각각 몇 년 몇 월 몇 일을 의미할까? 
 -- 또 TO_DATE('99/10/11','RR/MM/DD'), TO_DATE('49/10/11','RR/MM/DD') 은 각각 몇 년 몇 월 몇 일을 의미할까? 
-SELECT TO_DATE('99/10/11','YY/MM/DD') AS "년/월/일", 
-       TO_DATE('49/10/11','YY/MM/DD') AS "년/월/일",
-       TO_DATE('99/10/11','RR/MM/DD') AS "년/월/일",
-       TO_DATE('49/10/11','RR/MM/DD') AS "년/월/일"
-FROM DUAL;
-
--- SELECT TO_DATE('99/10/11', 'YY/MM/DD') AS "YY/MM/DD 형식(99)",
---       TO_DATE('49/10/11', 'YY/MM/DD') AS "YY/MM/DD 형식(49)",
---       TO_DATE('99/10/11', 'RR/MM/DD') AS "RR/MM/DD 형식(99)",
---       TO_DATE('49/10/11', 'RR/MM/DD') AS "RR/MM/DD 형식(49)"
---FROM DUAL;
+SELECT TO_DATE('99/10/11','YY/MM/DD') FROM DUAL; -- 2099/10/11
+SELECT TO_DATE('49/10/11','YY/MM/DD') FROM DUAL; -- 2049/10/11
+SELECT TO_DATE('99/10/11','RR/MM/DD') FROM DUAL; -- 1999/10/11
+SELECT TO_DATE('49/10/11','RR/MM/DD') FROM DUAL; -- 2049/10/11
+-- RR : 해당 두 자리 년도 값이 50 미만일 경우, 현재 세기를 반영
+--                              이상일 경우, 이전 세기를 반영
  
 
 ----8. 춘 기술대학교의 2000년도 이후 입학자들은 학번이 A로 시작하게 되어있다. 
 -- 2000년도 이전 학번을 받은 학생들의 학번과 이름을 보여주는 SQL 문장을 작성하시오.
 -- ENTRANCE_DATE = 입학년도 
-SELECT * FROM TB_STUDENT;
-SELECT STUDENT_NO, STUDENT_NAME
+SELECT
+    STUDENT_NO,
+    STUDENT_NAME
 FROM TB_STUDENT
-WHERE STUDENT_NO != 'A%';
+WHERE SUBSTR(ENTRANCE_DATE,1,2) >= 49;
 
---SELECT * FROM TB_STUDENT;
---SELECT STUDENT_NO, STUDENT_NAME
---FROM TB_STUDENT
---WHERE ENTRANCE_DATE >;
+SELECT
+    STUDENT_NO,
+    STUDENT_NAME
+FROM TB_STUDENT
+WHERE SUBSTR(STUDENT_NO,1,1) <> 'A';
 
 
 ---- 9. 학번이 A517178 인 한아름 학생의 학점 총 평점을 구하는 SQL 문을 작성하시오. 
 --단, 이때 출력 화면의 헤더는 "평점" 이라고 찍히게 하고, 점수는 반올림하여 소수점 이하 한 자리까지만 표시힌다.
-SELECT * FROM TB_STUDENT;
-SELECT * FROM TB_GRADE;
 
-SELECT ROUND(POINT, 1)  AS "평점"
-FROM TB_GRADE
-JOIN TB_STUDENT USING (STUDENT_NO)
-WHERE STUDENT_NO = 'A517178';
-
--- 행이 1개만 나와야 하는데...
---SELECT TB_GRADE, AVG(POINT) AS "평점"
+--SELECT ROUND(POINT, 1)  AS "평점"
 --FROM TB_GRADE
 --JOIN TB_STUDENT USING (STUDENT_NO)
---WHERE STUDENT_NO = 'A517178';
+--WHERE STUDENT_NO = 'A517178';  -- 오답
+
+SELECT
+    ROUND(AVG(POINT),1) AS "평점"
+FROM TB_GRADE
+WHERE STUDENT_NO = 'A517178';
 
 
--- 10. 학과별 학생수를 구하여 "학과번호", "학생수(명)" 의 형태로 헤더를 만들어 결과값이 출력되도록 하시오.
+---- 10. 학과별 학생수를 구하여 "학과번호", "학생수(명)" 의 형태로 헤더를 만들어 결과값이 출력되도록 하시오.
 -- ㄴ 학과별이니까 GROUP BY 사용
 -- DEPARTMENT_NO = 학과번호, STUDENT_NO = 학번 OR STUDENT_NAME 으로 해당 학과 소속된 학생 추출
 SELECT * FROM TB_STUDENT;
 SELECT * FROM TB_DEPARTMENT;
 
 SELECT DEPARTMENT_NO "학과번호", COUNT(STUDENT_NO) "학생수(명)"
-FROM TB_DEPARTMENT
-JOIN TB_STUDENT USING (DEPARTMENT_NO)
+FROM TB_STUDENT
+--JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
 GROUP BY DEPARTMENT_NO
 ORDER BY DEPARTMENT_NO ASC;
 
@@ -214,48 +231,53 @@ FROM TB_STUDENT
 WHERE COACH_PROFESSOR_NO IS NULL;
 
 
---12. 학번이 A112113인 김고운 학생의 년도 별 평점을 구하는 SQL 문을 작성하시오. 
+----12. 학번이 A112113인 김고운 학생의 년도 별 평점을 구하는 SQL 문을 작성하시오. 
 --단, 이때 출력 화면의 헤더는 "년도", "년도 별 평점" 이라고 찍히게 하고, 점수는 반올림하여 소수점 이하 한 자리까지만 표시한다.
-SELECT * FROM TB_STUDENT;
-SELECT * FROM TB_GRADE; -- TERM_NO 학기 번호
+SELECT
+    DISTINCT TO_CHAR(SUBSTR(TERM_NO,1,4)) AS "년도",
+    ROUND(AVG(POINT),1) AS "년도 별 평점"
+FROM TB_GRADE
+WHERE STUDENT_NO = 'A112113'
+GROUP BY TO_CHAR(SUBSTR(TERM_NO,1,4))
+ORDER BY 1;
 
---SELECT
---FROM
---WHERE STUDENT_NO = 'A112113'
-
-----13. 학과 별 휴학생 수를 파악하고자 한다. 학과 번호와 휴학생 수를 표시하는 SQL 문장을 작성하시오. 
+---- 13. 학과 별 휴학생 수를 파악하고자 한다. 학과 번호와 휴학생 수를 표시하는 SQL 문장을 작성하시오. 
 --          ㄴ 학과별이니까 GROUP BY 사용, 
--- DEPARTMENT_NO = 학과번호, 휴학한 사람 ABSENCE_YN 'Y' // 서브쿼리 써야하나???
+-- DEPARTMENT_NO = 학과번호, 휴학한 사람 ABSENCE_YN 'Y' // 서브쿼리 써야하나??? ㅡx , decode  사용
 
-SELECT DEPARTMENT_NO "학과코드명", COUNT(ABSENCE_YN) "휴학생 수"
-FROM TB_DEPARTMENT
-JOIN TB_STUDENT USING (DEPARTMENT_NO)
+SELECT
+    DEPARTMENT_NO AS "학과코드명",
+    COUNT(DECODE(ABSENCE_YN,'Y',1)) AS "휴학생 수"
+FROM TB_STUDENT
 GROUP BY DEPARTMENT_NO
-HAVING ABSENCE_YN = 'Y'
-ORDER BY DEPARTMENT_NO ASC;
-
+ORDER BY 1;
 
 --SELECT DEPARTMENT_NO "학과코드명", COUNT(ABSENCE_YN) "휴학생 수"
 --FROM TB_DEPARTMENT
 --JOIN TB_STUDENT USING (DEPARTMENT_NO)
 --GROUP BY DEPARTMENT_NO
 --HAVING ABSENCE_YN = 'Y'
---ORDER BY DEPARTMENT_NO ASC;
+--ORDER BY DEPARTMENT_NO ASC;  -- 오답
 
-
---14.  춘 대학교에 다니는 동명이인(同名異人) 학생들의 이름을 찾고자 한다. 
+---- 14.  춘 대학교에 다니는 동명이인(同名異人) 학생들의 이름을 찾고자 한다. 
 --어떤 SQL 문장을 사용하면 가능하겠는가?
+SELECT
+    STUDENT_NAME AS "동일이름",
+    COUNT(*) AS "동명인 수"
+FROM TB_STUDENT
+GROUP BY STUDENT_NAME
+HAVING COUNT(*) > 1
+ORDER BY 1;
 
---SELECT STUDENT_NAME AS "동일이름" COUNT(STUDENT_NAME) AS "동명인 수"
---FROM TB_STUDENT
---WHERE STUDENT_NAME = STUDENT_NAME;
-
-
-
---15. 학번이 A112113 인 김고운 학생의 년도, 학기 별 평점과 년도 별 누적 평점 , 총 평점을 구하는 SQL 문을 작성하시오. 
+---- 15. 학번이 A112113 인 김고운 학생의 년도, 학기 별 평점과 년도 별 누적 평점 , 총 평점을 구하는 SQL 문을 작성하시오. 
 --(단, 평점은 소수점 1자리까지만 반올림하여 표시한다.)
-
-
+SELECT
+    NVL(SUBSTR(TERM_NO,1,4),' ') AS "년도",
+    NVL(SUBSTR(TERM_NO,5,2),' ') AS "학기",
+    ROUND(AVG(POINT),1) AS "평점"
+FROM TB_GRADE
+WHERE STUDENT_NO = 'A112113'
+GROUP BY ROLLUP(SUBSTR(TERM_NO,1,4), SUBSTR(TERM_NO,5,2));
 
 
 -----[Additional SELECT - Option] page 13 ~ 21 / 9번, 10번 ~~ (12번은 더 쉽게 푸는 법 없을까)
@@ -308,7 +330,7 @@ ORDER BY POINT DESC, STUDENT_NO ASC;
 --SELECT STUDENT_NO, POINT
 --FROM TB_GRADE
 --WHERE CLASS_NO = 'C3118100' AND SEMESTER = '2학기' AND YEAR = 2004
---ORDER BY POINT DESC, STUDENT_NO ASC;
+--ORDER BY POINT DESC, STUDENT_NO ASC;  -- 오답
 
 
 --6. 학생 번호, 학생 이름, 학과 이름을 학생 이름으로 오름차순 정렬하여 출력하는 SQL 문을 작성하시오. 
@@ -329,57 +351,83 @@ FROM TB_CLASS
 JOIN TB_DEPARTMENT USING(DEPARTMENT_NO);
 
 ----8. 과목별 교수 이름을 찾으려고 한다. 과목 이름과 교수 이름을 출력하는 SQL 문을 작성하시오. 
-SELECT * FROM TB_CLASS;
-SELECT * FROM TB_PROFESSOR;
+SELECT
+    CLASS_NAME,
+    PROFESSOR_NAME
+FROM TB_CLASS
+JOIN TB_CLASS_PROFESSOR USING(CLASS_NO)
+JOIN TB_PROFESSOR USING(PROFESSOR_NO);
 
 --SELECT CLASS_NAME, PROFESSOR_NAME
 --FROM TB_CLASS
---JOIN TB_PROFESSOR USING(DEPARTMENT_NO)
---GROUP BY CLASS_NAME;
-
-SELECT CLASS_NAME, PROFESSOR_NAME
-FROM TB_CLASS
-JOIN TB_PROFESSOR USING (DEPARTMENT_NO);
+--JOIN TB_PROFESSOR USING (DEPARTMENT_NO); -- 오답
 
 
-SELECT CLASS_NAME, PROFESSOR_NAME
-FROM (
-    SELECT CLASS_NAME, PROFESSOR_NAME,
-           ROW_NUMBER() OVER (PARTITION BY CLASS_NAME ORDER BY PROFESSOR_NAME) AS rn
-    FROM TB_CLASS C
-    JOIN TB_PROFESSOR P ON C.DEPARTMENT_NO = P.DEPARTMENT_NO)
-WHERE rn = 1
-ORDER BY CLASS_NAME;
+--SELECT CLASS_NAME, PROFESSOR_NAME
+--FROM (
+--    SELECT CLASS_NAME, PROFESSOR_NAME,
+--           ROW_NUMBER() OVER (PARTITION BY CLASS_NAME ORDER BY PROFESSOR_NAME) AS rn
+--    FROM TB_CLASS C
+--    JOIN TB_PROFESSOR P ON C.DEPARTMENT_NO = P.DEPARTMENT_NO)
+--WHERE rn = 1
+--ORDER BY CLASS_NAME;  -- 오답
 
 
---9. 8번의 결과 중 ‘인문사회’ 계열에 속한 과목의 교수 이름을 찾으려고 한다. 
+----9. 8번의 결과 중 ‘인문사회’ 계열에 속한 과목의 교수 이름을 찾으려고 한다. 
 --이에 해당하는 과목 이름과 교수 이름을 출력하는 SQL 문을 작성하시오. 
+SELECT
+    CLASS_NAME,
+    PROFESSOR_NAME
+FROM TB_CLASS C
+JOIN TB_CLASS_PROFESSOR USING(CLASS_NO)
+JOIN TB_PROFESSOR USING(PROFESSOR_NO)
+JOIN TB_DEPARTMENT D ON(C.DEPARTMENT_NO = D.DEPARTMENT_NO)
+WHERE CATEGORY = '인문사회';
 
 
-
---10. ‘음악학과’ 학생들의 평점을 구하려고 한다. 
+----10. ‘음악학과’ 학생들의 평점을 구하려고 한다. 
 --음악학과 학생들의 "학번", "학생 이름", "전체 평점"을 출력하는 SQL 문장을 작성하시오.
 --(단, 평점은 소수점 1자리까지만 반올림하여 표시한다.)
 SELECT * FROM TB_STUDENT;
 SELECT * FROM TB_DEPARTMENT;
 SELECT * FROM TB_GRADE;
 
-SELECT STUDENT_NO, STUDENT_NAME, POINT --ROUND(AVG(POINT),1)
+SELECT
+    STUDENT_NO AS "학번",
+    STUDENT_NAME AS "학생 이름",
+    ROUND(AVG(POINT),1) AS "전체 평점"
 FROM TB_STUDENT
-JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
 JOIN TB_GRADE USING(STUDENT_NO)
-WHERE DEPARTMENT_NAME = '음악학과';
+JOIN TB_DEPARTMENT USING(DEPARTMENT_NO)
+WHERE DEPARTMENT_NAME = '음악학과'
+GROUP BY (STUDENT_NO, STUDENT_NAME)
+ORDER BY 1;
+
+--SELECT STUDENT_NO, STUDENT_NAME, ROUND(AVG(POINT),1)
+--FROM TB_STUDENT
+--JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
+--JOIN TB_GRADE USING(STUDENT_NO)
+--WHERE DEPARTMENT_NAME = '음악학과'; --오답
 
 
---11. 학번이 A313047인 학생이 학교에 나오고 있지 않다. 지도 교수에게 내용을 전달하기 위한 학과 이름, 학생 이름과 지도 교수 이름이 필요하다. 
+----11. 학번이 A313047인 학생이 학교에 나오고 있지 않다. 지도 교수에게 내용을 전달하기 위한 학과 이름, 학생 이름과 지도 교수 이름이 필요하다. 
 --이때 사용할 SQL 문을 작성하시오.  단, 출력헤더는 ?학과이름?, ?학생이름?, ?지도교수이름?으로 출력되도록 한다. 
 --SELECT DEPARTMENT_NAME AS "학과이름", STUDENT_NAME AS "학생이름", PROFESSOR_NAME "지도교수이름";
 SELECT * FROM TB_STUDENT;
 SELECT * FROM TB_DEPARTMENT;
 SELECT * FROM TB_PROFESSOR;
 
+SELECT
+    DEPARTMENT_NAME AS "학과이름",
+    STUDENT_NAME AS "학생이름",
+    PROFESSOR_NAME AS "지도교수이름"
+FROM TB_STUDENT
+JOIN TB_DEPARTMENT USING(DEPARTMENT_NO)
+JOIN TB_PROFESSOR ON(COACH_PROFESSOR_NO=PROFESSOR_NO)
+WHERE STUDENT_NO = 'A313047';
 
---12. 2007 년도에 '인간관계론' 과목을 수강한 학생을 찾아 학생이름과 수강학기를 표시하는 SQL 문장을 작성하시오. 
+
+----12. 2007 년도에 '인간관계론' 과목을 수강한 학생을 찾아 학생이름과 수강학기를 표시하는 SQL 문장을 작성하시오. 
 SELECT * FROM TB_CLASS
 WHERE CLASS_NAME = '인간관계론';
 
@@ -389,10 +437,18 @@ WHERE TERM_NO LIKE '2007%' AND CLASS_NO = 'C2604100';
 SELECT STUDENT_NAME, TERM_NO
 FROM TB_STUDENT
 JOIN TB_GRADE USING(STUDENT_NO)
-WHERE TERM_NO LIKE '2007%' AND CLASS_NO = 'C2604100';
+WHERE TERM_NO LIKE '2007%' AND CLASS_NO = 'C2604100'; --답은 같게 나온다..
+
+SELECT
+    STUDENT_NAME,
+    TERM_NO AS "TERM_NAME"
+FROM TB_STUDENT
+JOIN TB_GRADE USING(STUDENT_NO)
+JOIN TB_CLASS USING(CLASS_NO)
+WHERE SUBSTR(TERM_NO,1,4) = 2007 AND CLASS_NAME = '인간관계론'; --정답
 
 
---13. 예체능 계열 과목 중 과목 담당교수를 한 명도 배정받지 못한 과목을 찾아 그 과목 이름과 학과 이름을 출력하는 SQL 문장을 작성하시오.
+----13. 예체능 계열 과목 중 과목 담당교수를 한 명도 배정받지 못한 과목을 찾아 그 과목 이름과 학과 이름을 출력하는 SQL 문장을 작성하시오.
 SELECT * FROM TB_DEPARTMENT
 WHERE CATEGORY = '예체능'; -- DEPARMENT_NO = 056 ~063
 
@@ -401,12 +457,6 @@ SELECT * FROM TB_CLASS; -- DEPARTMENT_NO
 SELECT * FROM TB_PROFESSOR; -- PROFESSOR_NO, DEPARTMENT_NO
 
 SELECT * FROM TB_CLASS_PROFESSOR; -- PROFESSOR_NO
-
-SELECT CLASS_NAME, DEPARTMENT_NAME
-FROM TB_DEPARTMENT
-JOIN TB_CLASS USING (DEPARTMENT_NO)
-WHERE CATEGORY = '예체능';
-
 
 SELECT
     CLASS_NAME,
@@ -419,26 +469,95 @@ WHERE
     AND CATEGORY = '예체능';
 
 
---14. 춘 기술대학교 서반아어학과 학생들의 지도교수를 게시하고자 한다. 
+----14. 춘 기술대학교 서반아어학과 학생들의 지도교수를 게시하고자 한다. 
 --학생이름과 지도교수 이름을 찾고 만일 지도 교수가 없는 학생일 경우 "지도교수 미지정?으로 표시하도록 하는 SQL 문을 작성하시오. 
 --단,  출력헤더는 ?학생이름?, ?지도교수?로 표시하며 고학번 학생이 먼저 표시되도록 한다. 
+SELECT
+    STUDENT_NAME AS "학생이름",
+    NVL(PROFESSOR_NAME,'지도교수 미지정') AS "지도교수"
+FROM TB_STUDENT S, TB_DEPARTMENT D, TB_PROFESSOR P
+WHERE
+    S.DEPARTMENT_NO = D.DEPARTMENT_NO
+    AND S.COACH_PROFESSOR_NO = P.PROFESSOR_NO(+)
+    AND DEPARTMENT_NAME = '서반아어학과';
 
+----15. 휴학생이 아닌 학생 중 평점이 4.0 이상인 학생을 찾아 그 학생의 학번, 이름, 학과 이름, 평점을 출력하는 SQL 문을 작성하시오.  
+SELECT
+    S.STUDENT_NO AS "학번",
+    STUDENT_NAME AS "이름",
+    DEPARTMENT_NAME AS "학과 이름",
+    ROUND(AVG(POINT),5) AS "평점"
+FROM TB_STUDENT S, TB_DEPARTMENT D, TB_GRADE G
+WHERE 
+    ABSENCE_YN = 'N'
+    AND S.DEPARTMENT_NO = D.DEPARTMENT_NO
+    AND S.STUDENT_NO = G.STUDENT_NO
+GROUP BY (S.STUDENT_NO, STUDENT_NAME, DEPARTMENT_NAME)
+HAVING AVG(POINT) >= 4.0;
 
---15. 휴학생이 아닌 학생 중 평점이 4.0 이상인 학생을 찾아 그 학생의 학번, 이름, 학과 이름, 평점을 출력하는 SQL 문을 작성하시오.  
+----16. 환경조경학과 전공과목들의 과목 별 평점을 파악할 수 있는 SQL 문을 작성하시오.
+SELECT
+    C.CLASS_NO,
+    CLASS_NAME,
+    ROUND(AVG(POINT),8) AS "AVG(POINT)"
+FROM TB_CLASS C, TB_GRADE G, TB_DEPARTMENT D
+WHERE 
+    D.DEPARTMENT_NO = C.DEPARTMENT_NO
+    AND G.CLASS_NO = C.CLASS_NO
+    AND D.DEPARTMENT_NAME = '환경조경학과'
+    AND CLASS_TYPE LIKE '전공%'
+GROUP BY (C.CLASS_NO, CLASS_NAME)
+ORDER BY 1;
 
+----17. 춘 기술대학교에 다니고 있는 최경희 학생과 같은 과 학생들의 이름과 주소를 출력하는 SQL 문을 작성하시오. --서브쿼리
+SELECT
+    STUDENT_NAME,
+    STUDENT_ADDRESS
+FROM TB_STUDENT
+WHERE 
+    DEPARTMENT_NO = (SELECT DEPARTMENT_NO 
+                       FROM TB_STUDENT 
+                      WHERE STUDENT_NAME = '최경희');
 
---16. 환경조경학과 전공과목들의 과목 별 평점을 파악할 수 있는 SQL 문을 작성하시오.
+----18. 국어국문학과에서 총 평점이 가장 높은 학생의 이름과 학번을 표시하는 SQL문을 작성하시오. --서브쿼리
+SELECT STUDENT_NO, STUDENT_NAME
+FROM (
+    SELECT
+        S.STUDENT_NO,
+        STUDENT_NAME
+    FROM TB_STUDENT S, TB_DEPARTMENT D, TB_GRADE G
+    WHERE 
+        S.DEPARTMENT_NO = D.DEPARTMENT_NO
+        AND D.DEPARTMENT_NAME = '국어국문학과'
+        AND S.STUDENT_NO = G.STUDENT_NO
+    GROUP BY S.STUDENT_NO, STUDENT_NAME
+    ORDER BY AVG(POINT) DESC
+    )
+WHERE ROWNUM = 1;
 
-
---17. 춘 기술대학교에 다니고 있는 최경희 학생과 같은 과 학생들의 이름과 주소를 출력하는 SQL 문을 작성하시오. 
-
-
---18. 국어국문학과에서 총 평점이 가장 높은 학생의 이름과 학번을 표시하는 SQL문을 작성하시오. 
-
-
---19. 춘 기술대학교의 "환경조경학과"가 속한 같은 계열 학과들의 학과 별 전공과목 평점을 파악하기 위한 적절한 SQL 문을 찾아내시오.
+----19. 춘 기술대학교의 "환경조경학과"가 속한 같은 계열 학과들의 학과 별 전공과목 평점을 파악하기 위한 적절한 SQL 문을 찾아내시오.
 --단, 출력헤더는 "계열 학과명", "전공평점"으로 표시되도록 하고, 평점은 소수점 한 자리까지만 반올림하여 표시되도록 한다.
+SELECT * FROM TB_DEPARTMENT;
+SELECT * FROM TB_STUDENT;
+SELECT * FROM TB_CLASS;
+SELECT * FROM TB_CLASS_PROFESSOR;
+SELECT * FROM TB_PROFESSOR;
+SELECT * FROM TB_GRADE;
 
+SELECT DEPARTMENT_NAME AS "계열 학과명", ROUND(AVG(POINT),1) AS "전공평점"
+FROM TB_DEPARTMENT D, TB_GRADE G, TB_STUDENT S
+WHERE 
+    CATEGORY = 
+        (
+        SELECT
+            CATEGORY
+        FROM TB_DEPARTMENT
+        WHERE DEPARTMENT_NAME = '환경조경학과'
+        ) 
+    AND D.DEPARTMENT_NO = S.DEPARTMENT_NO
+    AND S.STUDENT_NO = G.STUDENT_NO
+GROUP BY DEPARTMENT_NAME
+ORDER BY 1;
 
 
 --[DDL] 
