@@ -1,4 +1,4 @@
------ [Basic SELECT] 완료
+----------------------------- [Basic SELECT] 완료  ----------------------------- 
 
 --1. 춘 기술대학교의 학과 이름과 계열을 표시하시오.
 -- 단, 출력 헤더는 "학과 명", "계열" 으로 표시하도록 한다.
@@ -19,7 +19,6 @@ FROM TB_DEPARTMENT;
 --SELECT DEPARTMENT_NAME AS "학과별", CAPACITY AS "정원"
 --FROM TB_DEPARTMENT;
 --WHERE CONCAT(DEPARTMENT_NAME '의 정원은', CAPACITY '명 입니다.') ;
-
 
 
 --3. "국어국문학과" 에 다니는 여학생 중 현재 휴학중인 여학생을 찾아달라는 요청이 들어왔다. 
@@ -94,7 +93,7 @@ WHERE ABSENCE_YN = 'N'
 
 
 
------[Additional SELECT - 함수] 5번, 7-9번, 12번 부터~~
+---------------------- [Additional SELECT - 함수] 5번, 7-9번, 12번 부터~~  ----------------------------- 
 
 --1. 영어영문학과(학과코드 002) 학생들의 학번과 이름, 입학 년도를 입학 년도가 빠른 순으로 표시하는 SQL 문장을 작성하시오.
 --( 단, 헤더는 "학번", "이름", "입학년도" 가 표시되도록 한다.)
@@ -280,7 +279,7 @@ WHERE STUDENT_NO = 'A112113'
 GROUP BY ROLLUP(SUBSTR(TERM_NO,1,4), SUBSTR(TERM_NO,5,2));
 
 
------[Additional SELECT - Option] page 13 ~ 21 / 9번, 10번 ~~ (12번은 더 쉽게 푸는 법 없을까)
+----------------------------- [Additional SELECT - Option] page 13 ~ 21 / 9번, 10번 ~~ (12번은 더 쉽게 푸는 법 없을까)
 
 --1. 학생이름과 주소지를 표시하시오. 단, 출력 헤더는 "학생 이름", "주소지"로 하고, 정렬은 이름으로 오름차순 표시하도록 한다. 
 SELECT * FROM TB_STUDENT;
@@ -560,7 +559,7 @@ GROUP BY DEPARTMENT_NAME
 ORDER BY 1;
 
 
---[DDL] 
+---------------------------------- [DDL] ------------------------------------ 10~14. view문제
 --1. 계열 정보를 저장할 카테고리 테이블을 만들려고 한다. 다음과 같은 테이블을 작성하시오.
 -- 테이블 이름 
 -- TB_CATEGORY 
@@ -682,10 +681,21 @@ SELECT * FROM TB_DEPARTMENT;
 
 -----15. 춘 기술대학교는 매년 수강신청 기간만 되면 특정 인기 과목들에 수강 신청이 몰려 
 --문제가 되고 있다. 최근 3년을 기준으로 수강인원이 가장 맋았던 3 과목을 찾는 구문을 작성해보시오.
+SELECT E.*
+FROM
+    (SELECT
+        G.CLASS_NO AS "과목번호",
+        CLASS_NAME AS "과목이름",
+        COUNT(*) AS "누적수강생수(명)"
+     FROM TB_GRADE G, TB_CLASS C
+     WHERE C.CLASS_NO = G.CLASS_NO
+           AND TERM_NO >= (SELECT MAX(TERM_NO) FROM TB_GRADE) - 402
+     GROUP BY G.CLASS_NO, CLASS_NAME
+     ORDER BY 3 DESC) E
+WHERE ROWNUM <= 3;
 
 
-
---------------------------------------[DML]---------------------------------
+--------------------------------------[DML]-----------------------------------------
 -- 1. 과목유형 테이블(TB_CLASS_TYPE)에 아래와 같은 데이터를 입력하시오.
 --번호, 유형이름 ------------ 
 --01, 전공필수 
