@@ -450,11 +450,7 @@ WHERE SUBSTR(TERM_NO,1,4) = 2007 AND CLASS_NAME = '인간관계론'; --정답
 ----13. 예체능 계열 과목 중 과목 담당교수를 한 명도 배정받지 못한 과목을 찾아 그 과목 이름과 학과 이름을 출력하는 SQL 문장을 작성하시오.
 SELECT * FROM TB_DEPARTMENT
 WHERE CATEGORY = '예체능'; -- DEPARMENT_NO = 056 ~063
-
 SELECT * FROM TB_CLASS; -- DEPARTMENT_NO
-
-SELECT * FROM TB_PROFESSOR; -- PROFESSOR_NO, DEPARTMENT_NO
-
 SELECT * FROM TB_CLASS_PROFESSOR; -- PROFESSOR_NO
 
 SELECT
@@ -538,18 +534,13 @@ WHERE ROWNUM = 1;
 --단, 출력헤더는 "계열 학과명", "전공평점"으로 표시되도록 하고, 평점은 소수점 한 자리까지만 반올림하여 표시되도록 한다.
 SELECT * FROM TB_DEPARTMENT;
 SELECT * FROM TB_STUDENT;
-SELECT * FROM TB_CLASS;
-SELECT * FROM TB_CLASS_PROFESSOR;
-SELECT * FROM TB_PROFESSOR;
 SELECT * FROM TB_GRADE;
 
 SELECT DEPARTMENT_NAME AS "계열 학과명", ROUND(AVG(POINT),1) AS "전공평점"
 FROM TB_DEPARTMENT D, TB_GRADE G, TB_STUDENT S
-WHERE 
-    CATEGORY = 
+WHERE CATEGORY = 
         (
-        SELECT
-            CATEGORY
+        SELECT CATEGORY
         FROM TB_DEPARTMENT
         WHERE DEPARTMENT_NAME = '환경조경학과'
         ) 
@@ -622,7 +613,6 @@ ALTER TABLE TB_CATEGORY RENAME COLUMN NAME TO CATEGORY_NAME;
 ALTER TABLE TB_CLASS_TYPE RENAME COLUMN NO TO CLASS_TYPE_NO;
 ALTER TABLE TB_CLASS_TYPE RENAME COLUMN NAME TO CLASS_TYPE_NAME;
 
-
 --7. TB_CATAGORY 테이블과 TB_CLASS_TYPE 테이블의 PRIMARY KEY 이름을 다음과 같이 변경하시오. 
 --Primary Key 의 이름은 "PK_ + 컬럼이름"으로 지정하시오. (ex. PK_CATEGORY_NAME ) 
 ALTER TABLE TB_CATEGORY RENAME CONSTRAINT NAME_PK TO PK_CATEGORY_NAME;
@@ -680,7 +670,7 @@ SELECT * FROM TB_DEPARTMENT;
 --어떻게 생성해야 하는지 작성하시오. 
 
 -----15. 춘 기술대학교는 매년 수강신청 기간만 되면 특정 인기 과목들에 수강 신청이 몰려 
---문제가 되고 있다. 최근 3년을 기준으로 수강인원이 가장 맋았던 3 과목을 찾는 구문을 작성해보시오.
+--문제가 되고 있다. 최근 3년을 기준으로 수강인원이 가장 많았던 3 과목을 찾는 구문을 작성해보시오.
 SELECT E.*
 FROM
     (SELECT
