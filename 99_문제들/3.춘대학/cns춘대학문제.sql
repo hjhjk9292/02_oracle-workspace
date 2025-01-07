@@ -151,9 +151,7 @@ FROM TB_PROFESSOR;
 ---- 5. 춘 기술대학교의 재수생 입학자를 구하려고 한다. 어떻게 찾아낼 것인가?  
 -- 이때, 19살에 입학하면 재수를 하지 않은 것으로 간주한다.
 
-SELECT 
-    STUDENT_NO,
-    STUDENT_NAME
+SELECT STUDENT_NO, STUDENT_NAME
 FROM TB_STUDENT
 WHERE EXTRACT(YEAR FROM ENTRANCE_DATE) - EXTRACT(YEAR FROM TO_DATE(SUBSTR(STUDENT_SSN,1,6))) > 19;
 
@@ -650,28 +648,87 @@ SELECT * FROM TB_CLASS_TYPE;
 SELECT * FROM TB_DEPARTMENT;
 
 
------10. 춘 기술대학교 학생들의 정보만이 포함되어 있는 학생일반정보 VIEW를 만들고자 한다. 
+--10. 춘 기술대학교 학생들의 정보만이 포함되어 있는 학생일반정보 VIEW를 만들고자 한다. 
 --아래 내용을 참고하여 적절한 SQL 문을 작성하시오.
+SELECT * FROM TB_STUDENT;
 
+--뷰 이름 : VW_학생일반정보 
+--컬럼 : 학번 학생이름 주소  
 
------11. 춘 기술대학교는 1년에 두 번씩 학과별로 학생과 지도교수가 지도 면담을 진행한다. 
+CREATE OR REPLACE VIEW VW_학생일반정보
+AS SELECT STUDENT_NO, STUDENT_NAME, STUDENT_SSN
+FROM TB_STUDENT;
+
+GRANT CREATE VIEW TO CNS;
+
+SELECT * FROM VW_학생일반정보;
+
+ROLLBACK;
+
+--11. 춘 기술대학교는 1년에 두 번씩 학과별로 학생과 지도교수가 지도 면담을 진행한다. 
 --이를 위해 사용할 학생이름, 학과이름, 담당교수이름 으로 구성되어 있는 VIEW 를 만드시오. 
 --이때 지도 교수가 없는 학생이 있을 수 있음을 고려하시오 
 --(단, 이 VIEW 는 단순 SELECT 만을 할 경우 학과별로 정렬되어 화면에 보여지게 만드시오.) 
+SELECT * FROM TB_STUDENT;       -- DEPARTMENT_NO       학생이름 (STUDENT_NAME)
+SELECT * FROM TB_DEPARTMENT;    -- DEPARTMENT_NO       학과이름 (DEPARTMENT_NAME)
+SELECT * FROM TB_PROFESSOR;     -- DEPARTMENT_NO       담당교수이름(PROFESSOR_NAME)
+
+--뷰 이름 VW_지도면담 
+--컬럼 --학생이름 --학과이름 --지도교수이름
+
+CREATE OR REPLACE VIEW VW_지도면담
+AS SELECT STUDENT_NAME, DEPARTMENT_NAME, PROFESSOR_NAME
+FROM TB_STUDENT
+JOIN TB_DEPARTMENT USING(DEPARTMENT_NO)
+JOIN TB_PROFESSOR USING(DEPARTMENT_NO);
+
+SELECT * FROM VW_지도면담;
+
+ROLLBACK;
+
+--SELECT DEPARTMENT_NO "학과번호", COUNT(STUDENT_NO) "학생수(명)"
+--FROM TB_STUDENT
+----JOIN TB_DEPARTMENT USING (DEPARTMENT_NO)
+--GROUP BY DEPARTMENT_NO
+--ORDER BY DEPARTMENT_NO ASC;
+
+----12. 모든 학과의 학과별 학생 수를 확인할 수 있도록 적절한 VIEW 를 작성해 보자. 
+--뷰 이름 --VW_학과별학생수 
+--컬럼 --DEPARTMENT_NAME --STUDENT_COUNT 
+SELECT * FROM TB_STUDENT;       -- DEPARTMENT_NO       학생이름 (STUDENT_NAME)
+SELECT * FROM TB_DEPARTMENT;
 
 
------12. 모든 학과의 학과별 학생 수를 확인할 수 있도록 적절한 VIEW 를 작성해 보자. 
+CREATE OR REPLACE VIEW VW_학과별학생수
+AS SELECT DEPARTMENT_NO "학과번호", COUNT(STUDENT_NO) "학생수(명)"
+FROM TB_STUDENT
+GROUP BY DEPARTMENT_NO
+ORDER BY DEPARTMENT_NO ASC;
 
+SELECT * FROM VW_학과별학생수;
 
------13. 위에서 생성한 학생일반정보 View를 통해서 학번이 A213046인 학생의 이름을 본인 
---이름으로 변경하는 SQL 문을 작성하시오. 
+----13. 위에서 생성한 학생일반정보 View를 통해서 학번이 A213046인 학생의 이름을 
+--본인 이름으로 변경하는 SQL 문을 작성하시오. 
 
------14. 13 번에서와 같이 VIEW를 통해서 데이터가 변경될 수 있는 상황을 막으려면 VIEW를 
+UPDATE VW_학생일반정보
+SET STUENT_NAME = '김현지'
+WHERE STUDENT_NO = 'A213046';
+
+SELECT * FROM VW_학생일반정보
+WHERE STUDENT_NO = 'A213046'; -- 서가람
+
+----14. 13 번에서와 같이 VIEW를 통해서 데이터가 변경될 수 있는 상황을 막으려면 VIEW를 
 --어떻게 생성해야 하는지 작성하시오. 
+CREATE OR REPLACE VIEW VW_학과별학생수
+AS SELECT DEPARTMENT_NO "학과번호", COUNT(STUDENT_NO) "학생수(명)"
+FROM TB_STUDENT
+GROUP BY DEPARTMENT_NO
+ORDER BY DEPARTMENT_NO ASC
+WITH READ ONLY;
 
 -----15. 춘 기술대학교는 매년 수강신청 기간만 되면 특정 인기 과목들에 수강 신청이 몰려 
 --문제가 되고 있다. 최근 3년을 기준으로 수강인원이 가장 많았던 3 과목을 찾는 구문을 작성해보시오.
-SELECT E.*
+SELECT *
 FROM
     (SELECT
         G.CLASS_NO AS "과목번호",
@@ -681,7 +738,7 @@ FROM
      WHERE C.CLASS_NO = G.CLASS_NO
            AND TERM_NO >= (SELECT MAX(TERM_NO) FROM TB_GRADE) - 402
      GROUP BY G.CLASS_NO, CLASS_NAME
-     ORDER BY 3 DESC) E
+     ORDER BY 3 DESC)
 WHERE ROWNUM <= 3;
 
 
