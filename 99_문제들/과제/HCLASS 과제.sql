@@ -33,9 +33,9 @@ HAVING CUSTOMID = 'mina012';
 --A-2. 이름에 '길동'이 들어가는 회원 구매한 상품 구매현황 (권태윤)
 -- 데이터 추가 후 실행하세요.
 INSERT INTO TBL_CUSTOM 
-			VALUES ('dongL','이길동','lee@daum.net',25,sysdate);
+         VALUES ('dongL','이길동','lee@daum.net',25,sysdate);
 INSERT INTO TBL_BUY 
-			VALUES (1008,'dongL','DOWON123a',2,sysdate);
+         VALUES (1008,'dongL','DOWON123A',2,sysdate);
 COMMIT;
 
 SELECT * FROM TBL_CUSTOM;
