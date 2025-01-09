@@ -57,7 +57,7 @@ NOCACHE;
 
 SELECT SEQ_EMPNO.CURRVAL FROM DUAL;                         -- 현재 SEQ_EMPNO에 있는 현재 시퀀스 값을 알려줘
 -- ORA-08002: sequence SEQ_EMPNO.CURRVAL is not yet defined in this session
-*Action:   select NEXTVAL from the sequence before selecting CURRVAL
+--*Action:   select NEXTVAL from the sequence before selecting CURRVAL
 
 -- NEXTVAL를 단 한번도 수행하지 않는 이상 CURRVAL 할 수 없음!
 -- 왜? 마지막으로 성공적으로 수행된 NEXTVAL 값이 CURRVAL 이기 때문!
