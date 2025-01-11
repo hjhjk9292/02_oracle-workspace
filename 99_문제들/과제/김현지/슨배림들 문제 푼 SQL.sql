@@ -200,7 +200,3 @@ SELECT * FROM TBL_BUY; --   CUSTOMID    PCODE     QUANTITY    BUY_DATE
 SELECT * FROM TBL_CUSTOM;-- CUSTOM_ID
 SELECT * FROM TBL_PRODUCT;--            PCODE   PNAME   RRICE
 
--- 가입일이 3년 이상됐으며 최근 1년 내 총 구매금액이 10만원 이상인 고객에게 이벤트를 진행하려고 한다. 해당하는 고객은?
-
-
--- 

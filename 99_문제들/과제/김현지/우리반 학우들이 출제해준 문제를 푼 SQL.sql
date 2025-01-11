@@ -11,20 +11,23 @@ SELECT CUSTOM_ID, NAME, SUM(PRICE)
 FROM TBL_BUY
 JOIN TBL_PRODUCT USING(PCODE)
 JOIN TBL_CUSTOM ON(CUSTOMID = CUSTOM_ID)
-WHERE SUBSTR(BUY_DATE, 1, 2) = '23'
+WHERE TO_CHAR(BUY_DATE, 'YYYY') = '2023'
 GROUP BY CUSTOM_ID, NAME
 HAVING AVG(PRICE) >= 20000;
 
 
 -- 2. "2023년 하반기  동안 '입'이라는 단어가 포함된 상품을 구매한 고객들의 이름, 나이, 이메일을 조회하시오.
 --단, 한 고객이 구매한 여러 상품에 대해 구매 수량의 합을 구하고, 구매 수량이 많은 순으로 정렬하시오."							
-SELECT NAME, AGE, EMAIL
+SELECT NAME, EMAIL
 FROM TBL_BUY
 JOIN TBL_PRODUCT USING(PCODE)
 JOIN TBL_CUSTOM ON(CUSTOMID = CUSTOM_ID)
-WHERE (SUBSTR(BUY_DATE, 1, 2) = '23') AND PNAME LIKE '%입%'
-GROUP BY NAME, AGE, EMAIL
+WHERE TO_CHAR(BUY_DATE, 'YYYY') = '2023'
+  AND TO_CHAR(BUY_DATE, 'MM') BETWEEN '07' AND '12'
+  AND PNAME LIKE '%입%'
+GROUP BY NAME, EMAIL
 ORDER BY SUM(QUANTITY) DESC;
+
 
 -- (고영훈)
 -- 3. 1)DATA_TYPE이 CHAR(2)인 CATEGORY_ID와 DATA_TYPE이 VARCHAR2(20)인 CATEGORY_NAME을 갖고있는 TBL_CATEGORY라는 테이블을 만들어라
@@ -51,26 +54,34 @@ INSERT INTO TBL_CATEGORY (CATEGORY_ID, CATEGORY_NAME) VALUES ('B1', '기타');
 
 UPDATE TBL_PRODUCT
 SET CATEGORY = CASE 
-    WHEN CATEGORY = '과일' THEN 'A1'
-    ELSE 'B1'
-END;
+                  WHEN CATEGORY LIKE '%과일%' THEN 'A1' 
+                  ELSE 'B1' 
+               END;
+
 
 ALTER TABLE TBL_PRODUCT
 ADD CONSTRAINT CATEGORY_ID_FK FOREIGN KEY (CATEGORY)
 REFERENCES TBL_CATEGORY (CATEGORY_ID)
 ON DELETE CASCADE;
 
+SELECT * FROM TBL_PRODUCT;
+
+ROLLBACK;
 
 -- (김준서)
 -- 5. "CATEGORY 데이터에 'B' 포함되어 있는 물품을 구매한 회원들의 이름, 구매 물품 이름과 구매물품의 총 가격 조회하시오.
 --(회원이름으로 오름 차순 정렬, 총 가격은 '총 구매금액'으로 별칭 지정)"
 
-SELECT NAME, PNAME, SUM(PRICE) AS "총구매금액"
+SELECT AGE, 
+    CASE 
+        WHEN GROUPING(PNAME) = 1 THEN '가장 비싼 상품의 가격' 
+        ELSE PNAME 
+    END AS "상품이름",
+    MAX(PRICE) AS "상품가격"
 FROM TBL_BUY
-JOIN TBL_PRODUCT USING (PCODE)
+JOIN TBL_PRODUCT USING(PCODE)
 JOIN TBL_CUSTOM ON (CUSTOMID = CUSTOM_ID)
-WHERE CATEGORY LIKE '%B%'
-GROUP BY NAME, PNAME
+GROUP BY ROLLUP(AGE, PNAME)
 ORDER BY 1;
 
 --- 6. "회원들의 각 나이 별로 구매한 상품들과 그 상품들 중 가장 가격이 높은 상품을 조회할려고 한다. 
@@ -83,6 +94,45 @@ JOIN TBL_PRODUCT USING(PCODE)
 JOIN TBL_CUSTOM ON(CUSTOMID = CUSTOM_ID)
 GROUP BY AGE, PNAME, ROLLUP(PRICE)
 ORDER BY 1;
+
+
+-- (김현지)
+--문제7. 오늘 날짜 기준으로 가입일이 2년 이상됐으며 최근 1년 내 총 구매금액이 5만원 이상인 고객에게 이벤트를 진행하려고 한다. 
+--해당하는 고객의 아이디, 이름, 총 구매금액을 조회하시오.
+
+SELECT CUSTOM_ID, NAME, SUM(PRICE * QUANTITY) AS "총 구매금액"
+FROM TBL_CUSTOM
+JOIN TBL_BUY ON (CUSTOM_ID = CUSTOMID)
+JOIN TBL_PRODUCT USING(PCODE)
+WHERE ADD_MONTHS(REG_DATE, 24) <= SYSDATE -- 가입일이 2년 이상
+  AND BUY_DATE >= ADD_MONTHS(SYSDATE, -12) -- 최근 1년 내
+GROUP BY CUSTOM_ID, NAME
+HAVING SUM(PRICE * QUANTITY) >= 50000; -- 총 구매금액 5만 이상
+
+
+SELECT C.CUSTOM_ID, C.NAME, SUM(P.PRICE * B.QUANTITY) AS "총 구매금액"
+FROM TBL_CUSTOM C
+JOIN TBL_BUY B ON C.CUSTOM_ID = B.CUSTOMID
+JOIN TBL_PRODUCT P ON B.PCODE = P.PCODE
+WHERE ADD_MONTHS(C.REG_DATE, 24) <= TO_DATE('2025-01-08', 'YYYY-MM-DD') -- 가입일이 2년 이상
+  AND B.BUY_DATE >= ADD_MONTHS(TO_DATE('2025-01-08', 'YYYY-MM-DD'), -12) -- 최근 1년 내
+GROUP BY C.CUSTOM_ID, C.NAME
+HAVING SUM(P.PRICE * B.QUANTITY) >= 50000; -- 총 구매 금액 5만 이상
+
+
+-- 8. 2023년과 2024년도별로 판매된 상품의 이름과 상품구매수량과 해당 상품을 구매한 고객 수를 조회하시오. 
+-- 출력 결과는 년도는 오름차순으로 정렬하고, 상품구매수량과 구매한 고객 수는 내림차순으로 정렬한다.
+
+SELECT TO_CHAR(BUY_DATE, 'YYYY') AS YEAR, 
+       PNAME, 
+       COUNT(QUANTITY) AS "상품구매수량", 
+       COUNT(CUSTOMID) AS "구매한 고객 수"
+FROM TBL_BUY
+JOIN TBL_PRODUCT USING (PCODE)
+WHERE TO_CHAR(BUY_DATE, 'YYYY') IN ('2023', '2024')
+GROUP BY TO_CHAR(BUY_DATE, 'YYYY'), PNAME
+ORDER BY YEAR ASC, "상품구매수량" DESC, "구매한 고객 수" DESC;
+
 
 -- (서동진)				
 --- 9. 이름이 김미나인 사람이 구매한 물품중에 두번째로 많은 것의 상품코드, 상품명, 가격, 수량
@@ -132,11 +182,21 @@ GROUP BY CATEGORY, PCODE;
 그 외 년도 구매: 정가
 위 기준을 기반으로 회원아이디 총 구매 금액(할인 적용 후)과 회원 등급 SQL 로 작성 부탁드립니다."							
 */
-SELECT CUSTOMID, QUANTITY * PRICE AS "총 구매 금액"
+SELECT CUSTOMID,
+       SUM(CASE
+               WHEN TO_CHAR(TO_DATE(BUY_DATE, 'YYYY-MM-DD'), 'YYYY') = '2022' THEN PRICE * 0.9
+               WHEN TO_CHAR(TO_DATE(BUY_DATE, 'YYYY-MM-DD'), 'YYYY') = '2023' THEN PRICE * 0.8
+               WHEN TO_CHAR(TO_DATE(BUY_DATE, 'YYYY-MM-DD'), 'YYYY') = '2024' THEN PRICE * 0.7
+               ELSE PRICE
+           END) AS "총 구매 금액",
+       CASE
+           WHEN SUM(PRICE) < 50000 THEN '일반 회원'
+           WHEN SUM(PRICE) < 100000 THEN '우수 회원'
+           ELSE '최우수 회원'
+       END AS "회원 등급"
 FROM TBL_BUY
-JOIN TBL_PRODUCT USING (PCODE)
-JOIN TBL_CUSTOM ON (CUSTOMID = CUSTOM_ID);
-
+JOIN TBL_PRODUCT USING(PCODE)
+GROUP BY CUSTOMID;
 
 
 -- (신현정) 
@@ -144,20 +204,14 @@ JOIN TBL_CUSTOM ON (CUSTOMID = CUSTOM_ID);
 -- (이때 이메일 '@' 뒷문자들은 *로 표시되게 조회해라) 	
 
 SELECT CUSTOM_ID, NAME, 
-       REGEXP_REPLACE(EMAIL, '@.*', '@************') AS EMAIL
+       SUBSTR(EMAIL, 1, INSTR(EMAIL, '@') - 1) || '@************' AS EMAIL
 FROM TBL_CUSTOM
 WHERE ADD_MONTHS(REG_DATE, 36) <= SYSDATE;
 
 
+
 ----문제 14. 카테고리별 가격합이 제일 적은 카테고리와 --HAVING
 --그 카테고리 상품을 제일 처음 구매한 구매자아이디와 구매날짜를 구하시오		--WHERE					
-SELECT CATEGORY, CUSTOMID AS "구매자 ID", BUY_DATE AS "구매 날짜"
-FROM TBL_BUY
-JOIN TBL_PRODUCT USING(PCODE)
-GROUP BY CATEGORY, CUSTOMID, BUY_DATE
-ORDER BY BUY_DATE, SUM(PRICE);
-
-
 SELECT CATEGORY, "구매자 ID", "구매 날짜"
 FROM (SELECT CATEGORY, CUSTOMID AS "구매자 ID", BUY_DATE AS "구매 날짜"
         FROM TBL_BUY
@@ -205,6 +259,7 @@ WHERE (AGE >=20 AND AGE < 30) AND PRICE >= 20000;
 POINT 컬럼을 추가한다. (자료형은 NUMBER, 기본값은 0으로 준다.)
 - POINT는 고객 별 누적 구매 금액 * 0.1 으로 계산한다.
 */
+
 CREATE TABLE TBL_POINT
 AS SELECT *
 FROM TBL_CUSTOM;
@@ -213,40 +268,38 @@ SELECT * FROM TBL_POINT;
 
 ALTER TABLE TBL_POINT ADD POINT NUMBER DEFAULT '0';
 
-SELECT NAME, POINT
-FROM TBL_POINT;
+UPDATE TBL_POINT
+SET POINT = (
+    SELECT NVL(SUM(PRICE * QUANTITY) * 0.1, 0)  -- 구매 금액 * 0.1, 없으면 0
+    FROM TBL_BUY
+    JOIN TBL_PRODUCT USING(PCODE)
+    WHERE CUSTOMID = CUSTOM_ID
+);
 
+
+-- 포인트가 5000점 이상인 회원의 이름과 적립된 포인트 조회
+SELECT NAME, POINT
+FROM TBL_POINT
+WHERE POINT >= 5000;
 
 
 -- (이호석)
 --- 문제 19. 햇반 12개입와 같은 카테고리로 묶여있는 제품을 구매한 고객의 이름, 나이를 출력하시오.
-SELECT NAME, AGE
+SELECT DISTINCT NAME, AGE
 FROM TBL_BUY
 JOIN TBL_PRODUCT USING(PCODE)
-JOIN TBL_CUSTOM ON (CUSTOMID = CUSTOM_ID)
-WHERE PNAME = '햇반 12개입';
-
-SELECT * FROM TBL_PRODUCT;
-
-SELECT NAME, AGE
-FROM TBL_BUY
-JOIN TBL_PRODUCT USING(PCODE)
-JOIN TBL_CUSTOM ON(CUSTOMID = CUSTOM_ID)
-WHERE CATEGORY = 'B1';
+JOIN TBL_CUSTOM ON (CUSTOMID = CUSTOMID)
+WHERE CATEGORY = (SELECT CATEGORY
+                     FROM TBL_PRODUCT
+                     WHERE PNAME = '햇반 12개입');
 
 
 --- 문제 20. 이나나와 같은 날짜에 가입한 회원의 이름과 EMAIL을 조회하라. '이나나'라는 이름을 사용해서 조회하도록 하라. (조회결과 : 이나나, 이길동)
 SELECT NAME, EMAIL
 FROM TBL_CUSTOM
-WHERE NAME = '이나나';
-
---SELECT NAME, EMAIL
---FROM (SELECT NAME, EMAIL, REG_DATE
---                    FROM TBL_CUSTOM
---                    WHERE NAME = '이나나'
---                  );
---WHERE REG_DATE  
-
+WHERE REG_DATE = (SELECT REG_DATE
+                  FROM TBL_CUSTOM
+                  WHERE NAME = '이나나');
 
 -- (전창용)
 --문제 21. 이메일이 'korea'인 사람과, 'daum'인 사람의 이름, 구매 품목, 구매일, 구매 수량, 구매 물품 당 가격의 총합 조회
@@ -280,12 +333,13 @@ GROUP BY ROLLUP(NAME, PNAME);
 
 -- 문제 24. "2. 2023년 동안 총 10만원 이상 구매한 고객에 대한 정보를 조회하고자 한다.
 --고객 이름, 아이디, 2023년 총 구매 금액을 조회하시오."							
-SELECT NAME, CUSTOM_ID, (PRICE * QUANTITY) AS "2023년 총 구매 금액"
+SELECT NAME, CUSTOM_ID, SUM(PRICE * QUANTITY) AS "2023년 총 구매 금액"
 FROM TBL_BUY
 JOIN TBL_PRODUCT USING(PCODE)
 JOIN TBL_CUSTOM ON (CUSTOMID = CUSTOM_ID)
-WHERE SUBSTR(BUY_DATE, 1, 2) = '23' AND QUANTITY * PRICE >= 100000;
-
+WHERE TO_CHAR(BUY_DATE, 'YY') = '23'
+GROUP BY NAME, CUSTOM_ID
+HAVING SUM(PRICE * QUANTITY) >= 100000;
 
 -- (한재희)
 --문제 25. 모든 고객의 구매한 상품, 구매한 갯수, 상품 별 가격, 상품 별 판매금액합계를 구하시오. 
